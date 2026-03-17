@@ -126,8 +126,15 @@ export default function ScaleCalculator() {
   const monthlyProfitCurrent = jobsPerMonth * gpPerJob
   const yearlyProfitCurrent = monthlyProfitCurrent * 12
 
-  const leadsNew = Math.round(leadsPerMonth * (1 + leadLift))
-  const closeRateNew = Math.min(closeRateCurrent * (1 + closeLift), 1)
+  const leadsNewAuto = Math.round(leadsPerMonth * (1 + leadLift))
+  const closeRateLiftAuto = closeLift * 100
+
+  const [newLeadsOverride, setNewLeadsOverride] = useState(null)
+  const [closeRateLiftOverride, setCloseRateLiftOverride] = useState(null)
+
+  const leadsNew = newLeadsOverride !== null ? newLeadsOverride : leadsNewAuto
+  const closeRateLiftPct = closeRateLiftOverride !== null ? closeRateLiftOverride / 100 : closeLift
+  const closeRateNew = Math.min(closeRateCurrent * (1 + closeRateLiftPct), 1)
   const jobsNew = leadsNew * closeRateNew
   const monthlyProfitNew = jobsNew * gpPerJob
   const yearlyProfitNew = monthlyProfitNew * 12
@@ -272,6 +279,37 @@ export default function ScaleCalculator() {
 
           {/* Section 3: Volume Comparison Table */}
           <Section title="Volume" subtitle="Side-by-side: where you are vs. where you'll be" accentColor="#6BF6FF" {...p}>
+            {/* Two inputs above the table */}
+            <div className="grid grid-cols-2 gap-4 mt-4 mb-6">
+              <div>
+                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-2" style={{ color: palette.textSoft }}>New leads / mo</div>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={newLeadsOverride !== null ? newLeadsOverride : leadsNewAuto}
+                    onChange={(e) => setNewLeadsOverride(Number(e.target.value))}
+                    className="h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold outline-none pr-4 pl-4"
+                    style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}
+                  />
+                </div>
+                <div className="text-xs mt-1" style={{ color: palette.textSoft }}>auto: {leadsNewAuto} (from improvement level)</div>
+              </div>
+              <div>
+                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-2" style={{ color: palette.textSoft }}>Close rate lift %</div>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={closeRateLiftOverride !== null ? closeRateLiftOverride : closeRateLiftAuto}
+                    onChange={(e) => setCloseRateLiftOverride(Number(e.target.value))}
+                    className="h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold outline-none pr-8 pl-4"
+                    style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: palette.textSoft }}>%</span>
+                </div>
+                <div className="text-xs mt-1" style={{ color: palette.textSoft }}>auto: {closeRateLiftAuto}% (from improvement level)</div>
+              </div>
+            </div>
+
             {/* Comparison table */}
             <div className="overflow-hidden rounded-[20px]" style={{ border: `1px solid ${palette.border}` }}>
               <table className="w-full">
