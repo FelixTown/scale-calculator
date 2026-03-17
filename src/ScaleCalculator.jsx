@@ -63,29 +63,23 @@ function InputRow({ label, value, onChange, suffix, prefix, note, palette, isDar
   )
 }
 
-function ImprovementToggle({ value, onChange, palette, isDark }) {
-  const options = ['Conservative', 'Typical', 'Strong']
+// Simple inline number input for the volume section overrides
+function SmallInput({ value, onChange, suffix, palette }) {
+  const [local, setLocal] = useState(String(value))
+  const isFocused = useRef(false)
+  useEffect(() => { if (!isFocused.current) setLocal(String(value)) }, [value])
   return (
-    <div className="py-5" style={{ borderBottom: `1px solid ${palette.borderSoft}` }}>
-      <div className="text-[20px] font-medium tracking-[-0.02em] md:text-[22px] mb-3" style={{ color: palette.text }}>Improvement level</div>
-      <div className="text-sm mb-4" style={{ color: palette.textSoft }}>Controls how much we expect leads and close rate to improve</div>
-      <div className="flex gap-2">
-        {options.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => onChange(opt)}
-            className="flex-1 rounded-[14px] py-3 text-sm font-bold uppercase tracking-[0.12em] transition"
-            style={{
-              background: value === opt ? ACCENT : palette.bgSecondary,
-              border: `1px solid ${value === opt ? ACCENT : palette.border}`,
-              color: value === opt ? '#050505' : palette.textMuted,
-              boxShadow: value === opt ? `0 0 20px rgba(111,230,0,0.3)` : 'none',
-            }}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
+    <div className="relative">
+      <input
+        type="number"
+        value={local}
+        onFocus={() => { isFocused.current = true }}
+        onChange={(e) => { setLocal(e.target.value); onChange(e.target.value) }}
+        onBlur={(e) => { isFocused.current = false; onChange(e.target.value); setLocal(String(value)) }}
+        className={`h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold outline-none pl-4 ${suffix ? 'pr-10' : 'pr-4'}`}
+        style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}
+      />
+      {suffix ? <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: palette.textSoft }}>{suffix}</span> : null}
     </div>
   )
 }
@@ -95,117 +89,100 @@ export default function ScaleCalculator() {
   const [theme, setTheme] = useState('dark')
   const isDark = theme === 'dark'
 
-  // Your Shop Today
-  const [jobsPerMonth, setJobsPerMonth] = useState(30)
-  const [leadsPerMonth, setLeadsPerMonth] = useState(60)
-  const [avgJobValue, setAvgJobValue] = useState(350)
-  const [grossMargin, setGrossMargin] = useState(65)
-  const [adSpend, setAdSpend] = useState(1500)
+  // ── Inputs: Your Shop Today ──
+  const [jobsPerMonth, setJobsPerMonth]     = useState(30)
+  const [leadsPerMonth, setLeadsPerMonth]   = useState(60)
+  const [avgJobValue, setAvgJobValue]       = useState(350)
+  const [grossMargin, setGrossMargin]       = useState(65)
+  const [adSpend, setAdSpend]               = useState(0)
 
-  // Working With Us
+  // ── Inputs: Working With Us ──
   const [monthlyFee, setMonthlyFee] = useState(297)
-  const [setupFee, setSetupFee] = useState(0)
-  const [improvementLevel, setImprovementLevel] = useState('Typical')
+  const [setupFee, setSetupFee]     = useState(0)
+
+  // ── Inputs: Volume overrides (additive) ──
+  // additionalLeads = extra leads per month we bring
+  // closeRateLiftPts = extra percentage points on close rate (e.g. 10 means +10%)
+  const [additionalLeads, setAdditionalLeads]       = useState(15)
+  const [closeRateLiftPts, setCloseRateLiftPts]     = useState(10)
 
   const clamp = (v, lo, hi) => {
     const n = Number(v)
     return isNaN(n) ? (lo || 0) : Math.min(Math.max(n, lo || 0), hi === undefined ? Infinity : hi)
   }
 
-  // Improvement presets
-  const presets = {
-    Conservative: { leadLift: 0.15, closeLift: 0.10 },
-    Typical:      { leadLift: 0.25, closeLift: 0.20 },
-    Strong:       { leadLift: 0.40, closeLift: 0.30 },
-  }
-  const { leadLift, closeLift } = presets[improvementLevel]
-
-  // Derived: current
-  const closeRateCurrent = leadsPerMonth > 0 ? jobsPerMonth / leadsPerMonth : 0
-  const gpPerJob = avgJobValue * (grossMargin / 100)
-  const monthlyProfitCurrent = jobsPerMonth * gpPerJob
-  const yearlyProfitCurrent = monthlyProfitCurrent * 12
-
-  const leadsNewAuto = Math.round(leadsPerMonth * (1 + leadLift))
-  const closeRateLiftAuto = Math.round(closeLift * 100)
-
-  const [newLeadsManual, setNewLeadsManual] = useState(null)
-  const [closeRateLiftManual, setCloseRateLiftManual] = useState(null)
-  const [lastImprovementLevel, setLastImprovementLevel] = useState(improvementLevel)
-
-  // Reset manual overrides when improvement level changes
-  if (lastImprovementLevel !== improvementLevel) {
-    setLastImprovementLevel(improvementLevel)
-    setNewLeadsManual(null)
-    setCloseRateLiftManual(null)
-  }
-
-  const leadsNew = newLeadsManual !== null ? newLeadsManual : leadsNewAuto
-  const closeRateLiftPct = (closeRateLiftManual !== null ? closeRateLiftManual : closeRateLiftAuto) / 100
-  const closeRateNew = Math.min(closeRateCurrent * (1 + closeRateLiftPct), 1)
-  const jobsNew = leadsNew * closeRateNew
-  const monthlyProfitNew = jobsNew * gpPerJob
-  const yearlyProfitNew = monthlyProfitNew * 12
-
-  // Verdict
-  const deltaMonthly = monthlyProfitNew - monthlyProfitCurrent
-  const deltaYearly = deltaMonthly * 12
-  const totalCostPerMonth = adSpend + monthlyFee
-  const cacNew = jobsNew > 0 ? totalCostPerMonth / jobsNew : null
-  const ltgp = gpPerJob // simplified: single job LTGP (no repeat data in this spec)
-  const returnMultiple = cacNew !== null && cacNew > 0 ? ltgp / cacNew : null
-  const paybackMonths = deltaMonthly > 0 ? (setupFee + monthlyFee) / deltaMonthly : null
-  const paybackWeeks = paybackMonths !== null ? paybackMonths * 4.33 : null
-  const annualExtra = deltaMonthly * 12
-
   const palette = useMemo(() => ({
-    bg: isDark ? '#050505' : '#FFFFFF',
-    bgSecondary: isDark ? 'rgba(255,255,255,0.028)' : 'rgba(10,10,10,0.035)',
-    panelStrong: isDark ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.98)',
-    border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(5,5,5,0.10)',
-    borderSoft: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(5,5,5,0.06)',
-    text: isDark ? '#F5F7FA' : '#050505',
-    textMuted: isDark ? 'rgba(245,247,250,0.72)' : 'rgba(5,5,5,0.62)',
-    textSoft: isDark ? 'rgba(245,247,250,0.46)' : 'rgba(5,5,5,0.42)',
-    glow: isDark ? '0 0 0 1px rgba(255,255,255,0.03), 0 30px 90px rgba(0,0,0,0.55)' : '0 0 0 1px rgba(5,5,5,0.04), 0 20px 60px rgba(5,5,5,0.08)',
-    inset: isDark ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'inset 0 1px 0 rgba(255,255,255,0.9)',
-    hero: isDark
+    bg:          isDark ? '#050505'                    : '#FFFFFF',
+    bgSecondary: isDark ? 'rgba(255,255,255,0.028)'   : 'rgba(10,10,10,0.035)',
+    panelStrong: isDark ? 'rgba(255,255,255,0.045)'   : 'rgba(255,255,255,0.98)',
+    border:      isDark ? 'rgba(255,255,255,0.08)'    : 'rgba(5,5,5,0.10)',
+    borderSoft:  isDark ? 'rgba(255,255,255,0.05)'    : 'rgba(5,5,5,0.06)',
+    text:        isDark ? '#F5F7FA'                   : '#050505',
+    textMuted:   isDark ? 'rgba(245,247,250,0.72)'    : 'rgba(5,5,5,0.62)',
+    textSoft:    isDark ? 'rgba(245,247,250,0.46)'    : 'rgba(5,5,5,0.42)',
+    glow:        isDark ? '0 0 0 1px rgba(255,255,255,0.03), 0 30px 90px rgba(0,0,0,0.55)' : '0 0 0 1px rgba(5,5,5,0.04), 0 20px 60px rgba(5,5,5,0.08)',
+    inset:       isDark ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'inset 0 1px 0 rgba(255,255,255,0.9)',
+    hero:        isDark
       ? 'radial-gradient(circle at top left, rgba(111,230,0,0.14), transparent 28%), radial-gradient(circle at top right, rgba(255,255,255,0.06), transparent 30%), linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))'
       : 'radial-gradient(circle at top left, rgba(111,230,0,0.12), transparent 28%), radial-gradient(circle at top right, rgba(111,230,0,0.08), transparent 30%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98))',
-    pageGlow: isDark
+    pageGlow:    isDark
       ? 'radial-gradient(circle at top, rgba(111,230,0,0.11), transparent 22%), radial-gradient(circle at 80% 0%, rgba(255,255,255,0.05), transparent 18%)'
       : 'radial-gradient(circle at top, rgba(111,230,0,0.10), transparent 22%), radial-gradient(circle at 80% 0%, rgba(111,230,0,0.08), transparent 18%)',
   }), [isDark])
 
-  const verdictLevel = returnMultiple === null ? 'neutral' : returnMultiple < 2 ? 'red' : returnMultiple < 3 ? 'yellow' : 'green'
+  // ── Current derived values ──
+  const closeRateCurrent   = leadsPerMonth > 0 ? jobsPerMonth / leadsPerMonth : 0  // e.g. 0.50
+  const gpPerJob           = avgJobValue * (grossMargin / 100)
+  const monthlyProfitCurrent = jobsPerMonth * gpPerJob
+  const yearlyProfitCurrent  = monthlyProfitCurrent * 12
 
+  // ── With ScaleAuto derived values ──
+  // additionalLeads = extra leads from our system
+  // closeRateLiftPts = extra percentage POINTS on close rate (e.g. 10 = +10pp, so 50% → 60%)
+  const newLeadsDelta      = additionalLeads
+  const leadsTotal         = leadsPerMonth + newLeadsDelta
+  const closeRateNew       = Math.min((closeRateCurrent * 100 + closeRateLiftPts) / 100, 1)
+  const newJobsDelta       = leadsTotal * closeRateNew - jobsPerMonth   // extra jobs from both more leads + better close rate
+  const jobsTotal          = jobsPerMonth + newJobsDelta
+  const monthlyProfitNew   = jobsTotal * gpPerJob
+  const yearlyProfitNew    = monthlyProfitNew * 12
+  const deltaMonthly       = monthlyProfitNew - monthlyProfitCurrent
+
+  // ── Verdict ──
+  const totalCostPerMonth  = adSpend + monthlyFee
+  const cacNew             = jobsTotal > 0 ? totalCostPerMonth / jobsTotal : null
+  const returnMultiple     = cacNew !== null && cacNew > 0 ? gpPerJob / cacNew : null
+  const paybackMonths      = deltaMonthly > 0 ? (setupFee + monthlyFee) / deltaMonthly : null
+  const paybackWeeks       = paybackMonths !== null ? paybackMonths * 4.33 : null
+  const annualExtra        = deltaMonthly * 12
+
+  const verdictLevel = returnMultiple === null ? 'neutral' : returnMultiple < 2 ? 'red' : returnMultiple < 3 ? 'yellow' : 'green'
   const vc = {
-    red:     { bg: isDark ? 'rgba(136,19,55,0.22)' : 'rgba(251,113,133,0.10)', border: isDark ? 'rgba(251,113,133,0.25)' : 'rgba(190,18,60,0.18)', text: isDark ? '#FDA4AF' : '#BE123C', label: 'Not Worth It' },
-    yellow:  { bg: isDark ? 'rgba(120,92,22,0.20)' : 'rgba(250,204,21,0.12)',  border: isDark ? 'rgba(250,204,21,0.25)'  : 'rgba(161,98,7,0.20)',  text: isDark ? '#FDE68A' : '#A16207', label: 'Borderline' },
-    green:   { bg: isDark ? 'rgba(111,230,0,0.10)' : 'rgba(111,230,0,0.10)',   border: isDark ? 'rgba(111,230,0,0.22)'   : 'rgba(111,230,0,0.25)', text: isDark ? accent   : '#4D9B00', label: 'No-Brainer' },
-    neutral: { bg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(5,5,5,0.03)',     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(5,5,5,0.08)',     text: palette.textMuted, label: 'Enter your numbers' },
+    red:     { bg: isDark ? 'rgba(136,19,55,0.22)'    : 'rgba(251,113,133,0.10)', border: isDark ? 'rgba(251,113,133,0.25)' : 'rgba(190,18,60,0.18)',  text: isDark ? '#FDA4AF' : '#BE123C', label: 'Not Worth It' },
+    yellow:  { bg: isDark ? 'rgba(120,92,22,0.20)'    : 'rgba(250,204,21,0.12)',  border: isDark ? 'rgba(250,204,21,0.25)'  : 'rgba(161,98,7,0.20)',   text: isDark ? '#FDE68A' : '#A16207', label: 'Borderline' },
+    green:   { bg: isDark ? 'rgba(111,230,0,0.10)'    : 'rgba(111,230,0,0.10)',   border: isDark ? 'rgba(111,230,0,0.22)'   : 'rgba(111,230,0,0.25)',  text: isDark ? accent   : '#4D9B00', label: 'No-Brainer' },
+    neutral: { bg: isDark ? 'rgba(255,255,255,0.04)'  : 'rgba(5,5,5,0.03)',       border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(5,5,5,0.08)',       text: palette.textMuted,              label: 'Enter your numbers' },
   }[verdictLevel]
 
   const verdictMessage = verdictLevel === 'neutral' ? 'Enter your numbers above to see your ROI.'
-    : verdictLevel === 'red' ? "You shouldn't do this. Keep what you're doing."
+    : verdictLevel === 'red'    ? "You shouldn't do this. Keep what you're doing."
     : verdictLevel === 'yellow' ? "Same-ish money, but we remove the admin headache."
-    : `For every $1 you put into ads + our system, you get $${returnMultiple !== null ? returnMultiple.toFixed(2) : '—'} back in gross profit. This is a no-brainer.`
+    : `For every $1 you put into ads + our system, you get $${returnMultiple.toFixed(2)} back in gross profit. This is a no-brainer.`
 
   function fmt(v, type, d) {
     const digits = d === undefined ? 0 : d
     const n = isFinite(v) ? v : 0
     if (type === 'currency') return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: digits, minimumFractionDigits: digits }).format(n)
-    if (type === 'pct') return (n * 100).toFixed(1) + '%'
+    if (type === 'pct')      return (n * 100).toFixed(1) + '%'
     return new Intl.NumberFormat('en-US', { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(n)
   }
 
   const p = { palette, isDark }
 
-  // Table cell styles
-  const thStyle = { color: palette.textSoft, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', padding: '12px 16px', textAlign: 'right' }
-  const thLabelStyle = { ...thStyle, textAlign: 'left' }
-  const tdStyle = (highlight) => ({ color: highlight ? accent : palette.text, fontSize: '20px', fontWeight: 600, padding: '14px 16px', textAlign: 'right', borderTop: `1px solid ${palette.borderSoft}` })
+  const thLabelStyle = { color: palette.textSoft, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', padding: '12px 16px', textAlign: 'left' }
+  const thStyle      = { color: palette.textSoft, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', padding: '12px 16px', textAlign: 'right' }
   const tdLabelStyle = { color: palette.textMuted, fontSize: '18px', fontWeight: 500, padding: '14px 16px', borderTop: `1px solid ${palette.borderSoft}` }
+  const tdStyle      = (hi) => ({ color: hi ? accent : palette.text, fontSize: '20px', fontWeight: 600, padding: '14px 16px', textAlign: 'right', borderTop: `1px solid ${palette.borderSoft}` })
 
   return (
     <div className="min-h-screen" style={{ background: `${palette.pageGlow}, ${palette.bg}` }}>
@@ -218,12 +195,8 @@ export default function ScaleCalculator() {
               <div className="inline-flex items-center rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.24em]" style={{ background: isDark ? 'rgba(111,230,0,0.10)' : 'rgba(111,230,0,0.12)', border: `1px solid ${isDark ? 'rgba(111,230,0,0.22)' : 'rgba(111,230,0,0.24)'}`, color: isDark ? '#C9FF9F' : '#4D9B00' }}>
                 Scale Automotive
               </div>
-              <h1 className="mt-4 text-4xl font-semibold tracking-[-0.06em] md:text-5xl" style={{ color: palette.text }}>
-                See your ROI before you decide.
-              </h1>
-              <p className="mt-3 text-lg leading-8" style={{ color: palette.textMuted }}>
-                Your numbers. Our system. Here's exactly what changes.
-              </p>
+              <h1 className="mt-4 text-4xl font-semibold tracking-[-0.06em] md:text-5xl" style={{ color: palette.text }}>See your ROI before you decide.</h1>
+              <p className="mt-3 text-lg leading-8" style={{ color: palette.textMuted }}>Your numbers. Our system. Here's exactly what changes.</p>
             </div>
             <button onClick={() => setTheme(isDark ? 'light' : 'dark')} className="inline-flex h-12 items-center gap-3 self-start rounded-full px-5 text-sm font-semibold uppercase tracking-[0.14em] transition" style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}>
               <span className="flex h-7 w-7 items-center justify-center rounded-full" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(5,5,5,0.05)' }}>
@@ -239,14 +212,14 @@ export default function ScaleCalculator() {
           {/* Section 1: Your Shop Today */}
           <Section title="Your Shop Today" subtitle="What your business looks like right now" {...p}>
             <InputRow {...p} label="Jobs per month" value={jobsPerMonth} onChange={(v) => setJobsPerMonth(clamp(v, 0))} note="How many paying jobs do you complete each month?" />
-            <InputRow {...p} label="Leads per month" value={leadsPerMonth} onChange={(v) => setLeadsPerMonth(clamp(v, 0))} note="All inbound enquiries — calls, forms, DMs, walk-ins." />
+            <InputRow {...p} label="Leads per month" value={leadsPerMonth} onChange={(v) => setLeadsPerMonth(clamp(v, 1))} note="All inbound enquiries — calls, forms, DMs, walk-ins." />
             <div className="py-5" style={{ borderBottom: `1px solid ${palette.borderSoft}` }}>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-[20px] font-medium" style={{ color: palette.text }}>Close rate</div>
-                  <div className="text-sm mt-1" style={{ color: palette.textSoft }}>Calculated from jobs / leads above</div>
+                  <div className="text-sm mt-1" style={{ color: palette.textSoft }}>Calculated from jobs / leads</div>
                 </div>
-                <div className="text-[28px] font-semibold" style={{ color: palette.textMuted }}>{fmt(closeRateCurrent, 'pct')}</div>
+                <div className="text-[28px] font-semibold" style={{ color: palette.textMuted }}>{(closeRateCurrent * 100).toFixed(1)}%</div>
               </div>
             </div>
             <InputRow {...p} label="Average job value" prefix="$" value={avgJobValue} onChange={(v) => setAvgJobValue(clamp(v, 1))} note="Blended average across tint, PPF, detailing, and any other services." />
@@ -255,7 +228,7 @@ export default function ScaleCalculator() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-[20px] font-medium" style={{ color: palette.text }}>Gross profit per job</div>
-                  <div className="text-sm mt-1" style={{ color: palette.textSoft }}>Calculated from job value x margin</div>
+                  <div className="text-sm mt-1" style={{ color: palette.textSoft }}>Job value × margin</div>
                 </div>
                 <div className="text-[28px] font-semibold" style={{ color: accent }}>{fmt(gpPerJob, 'currency')}</div>
               </div>
@@ -264,57 +237,25 @@ export default function ScaleCalculator() {
           </Section>
 
           {/* Section 2: Working With Us */}
-          <Section title="Working With Us" subtitle="What you pay, and what we expect to improve" accentColor="#FFC84A" {...p}>
+          <Section title="Working With Us" subtitle="What you pay" accentColor="#FFC84A" {...p}>
             <InputRow {...p} label="Monthly fee" prefix="$" value={monthlyFee} onChange={(v) => setMonthlyFee(clamp(v, 0))} />
             <InputRow {...p} label="Setup fee" prefix="$" value={setupFee} onChange={(v) => setSetupFee(clamp(v, 0))} note="One-time. Default $0." />
-            <ImprovementToggle value={improvementLevel} onChange={setImprovementLevel} {...p} />
-            <div className="mt-4 rounded-[16px] p-4" style={{ background: palette.bgSecondary, border: `1px solid ${palette.borderSoft}` }}>
-              <div className="text-xs font-bold uppercase tracking-[0.14em] mb-3" style={{ color: palette.textSoft }}>What this level assumes</div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <div className="text-sm" style={{ color: palette.textSoft }}>Lead lift</div>
-                  <div className="text-2xl font-bold mt-1" style={{ color: accent }}>+{(leadLift * 100).toFixed(0)}%</div>
-                  <div className="text-xs mt-0.5" style={{ color: palette.textSoft }}>more leads, same traffic</div>
-                </div>
-                <div>
-                  <div className="text-sm" style={{ color: palette.textSoft }}>Close rate lift</div>
-                  <div className="text-2xl font-bold mt-1" style={{ color: accent }}>+{(closeLift * 100).toFixed(0)}%</div>
-                  <div className="text-xs mt-0.5" style={{ color: palette.textSoft }}>more leads converted</div>
-                </div>
-              </div>
-            </div>
           </Section>
 
-          {/* Section 3: Volume Comparison Table */}
+          {/* Section 3: Volume */}
           <Section title="Volume" subtitle="Side-by-side: where you are vs. where you'll be" accentColor="#6BF6FF" {...p}>
-            {/* Two inputs above the table */}
+
+            {/* Two additive inputs */}
             <div className="grid grid-cols-2 gap-4 mt-4 mb-6">
               <div>
-                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-2" style={{ color: palette.textSoft }}>New leads / mo</div>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={leadsNew}
-                    onChange={(e) => setNewLeadsManual(Number(e.target.value))}
-                    className="h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold outline-none pr-4 pl-4"
-                    style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}
-                  />
-                </div>
-                <div className="text-xs mt-1" style={{ color: palette.textSoft }}>auto: {leadsNewAuto} (from improvement level)</div>
+                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-1" style={{ color: palette.textSoft }}>Additional leads / mo</div>
+                <div className="text-xs mb-2" style={{ color: palette.textSoft }}>Extra leads our system brings in</div>
+                <SmallInput value={additionalLeads} onChange={(v) => setAdditionalLeads(clamp(v, 0))} palette={palette} />
               </div>
               <div>
-                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-2" style={{ color: palette.textSoft }}>Close rate lift %</div>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={closeRateLiftManual !== null ? closeRateLiftManual : closeRateLiftAuto}
-                    onChange={(e) => setCloseRateLiftManual(Number(e.target.value))}
-                    className="h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold outline-none pr-8 pl-4"
-                    style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}
-                  />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: palette.textSoft }}>%</span>
-                </div>
-                <div className="text-xs mt-1" style={{ color: palette.textSoft }}>auto: {closeRateLiftAuto}% (from improvement level)</div>
+                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-1" style={{ color: palette.textSoft }}>Close rate lift</div>
+                <div className="text-xs mb-2" style={{ color: palette.textSoft }}>Extra percentage points on close rate</div>
+                <SmallInput value={closeRateLiftPts} onChange={(v) => setCloseRateLiftPts(clamp(v, 0, 100))} suffix="pp" palette={palette} />
               </div>
             </div>
 
@@ -332,22 +273,22 @@ export default function ScaleCalculator() {
                   <tr>
                     <td style={tdLabelStyle}>Leads / mo</td>
                     <td style={tdStyle(false)}>{fmt(leadsPerMonth, 'number', 0)}</td>
-                    <td style={tdStyle(true)}>+{fmt(Math.max(0, leadsNew - leadsPerMonth), 'number', 0)} ({fmt(leadsNew, 'number', 0)})</td>
+                    <td style={tdStyle(true)}>+{fmt(newLeadsDelta, 'number', 0)} ({fmt(leadsTotal, 'number', 0)})</td>
                   </tr>
                   <tr>
                     <td style={tdLabelStyle}>Jobs / mo</td>
                     <td style={tdStyle(false)}>{fmt(jobsPerMonth, 'number', 0)}</td>
-                    <td style={tdStyle(true)}>+{fmt(Math.max(0, jobsNew - jobsPerMonth), 'number', 1)} ({fmt(jobsNew, 'number', 1)})</td>
+                    <td style={tdStyle(true)}>+{fmt(newJobsDelta, 'number', 1)} ({fmt(jobsTotal, 'number', 1)})</td>
                   </tr>
                   <tr>
                     <td style={tdLabelStyle}>Monthly profit</td>
                     <td style={tdStyle(false)}>{fmt(monthlyProfitCurrent, 'currency')}</td>
-                    <td style={tdStyle(true)}>+{fmt(Math.max(0, deltaMonthly), 'currency')} ({fmt(monthlyProfitNew, 'currency')})</td>
+                    <td style={tdStyle(true)}>+{fmt(deltaMonthly, 'currency')} ({fmt(monthlyProfitNew, 'currency')})</td>
                   </tr>
                   <tr>
                     <td style={tdLabelStyle}>Yearly profit</td>
                     <td style={tdStyle(false)}>{fmt(yearlyProfitCurrent, 'currency')}</td>
-                    <td style={tdStyle(true)}>+{fmt(Math.max(0, deltaMonthly * 12), 'currency')} ({fmt(yearlyProfitNew, 'currency')})</td>
+                    <td style={tdStyle(true)}>+{fmt(annualExtra, 'currency')} ({fmt(yearlyProfitNew, 'currency')})</td>
                   </tr>
                 </tbody>
               </table>
@@ -356,8 +297,6 @@ export default function ScaleCalculator() {
 
           {/* Section 4: Verdict */}
           <Section title="The Verdict" accentColor="#6BF6FF" {...p}>
-
-            {/* Color band */}
             <div className="rounded-[26px] px-6 py-8 md:px-10 md:py-10 mb-6" style={{ background: vc.bg, border: `1px solid ${vc.border}` }}>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                 <div>
@@ -371,7 +310,6 @@ export default function ScaleCalculator() {
                   </div>
                 )}
               </div>
-              {/* Progress bar */}
               <div className="mt-8">
                 <div className="h-2.5 rounded-full overflow-hidden" style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(5,5,5,0.08)' }}>
                   <div className="h-full rounded-full transition-all duration-500" style={{
@@ -390,12 +328,11 @@ export default function ScaleCalculator() {
               </div>
             </div>
 
-            {/* 4 stat cards */}
             <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
               {[
-                { label: 'Extra profit / month', value: deltaMonthly > 0 ? `+${fmt(deltaMonthly, 'currency')}` : '—', color: accent },
-                { label: 'Annual extra take-home', value: annualExtra > 0 ? `+${fmt(annualExtra, 'currency')}` : '—', color: accent },
-                { label: 'Break-even', value: paybackWeeks !== null && paybackWeeks > 0 ? `${paybackWeeks.toFixed(1)} wks` : '—', sub: paybackMonths !== null && paybackMonths > 0 ? `${paybackMonths.toFixed(1)} months` : null, color: isDark ? '#6BF6FF' : '#0891B2' },
+                { label: 'Extra profit / month',       value: deltaMonthly > 0  ? `+${fmt(deltaMonthly, 'currency')}` : '—', color: accent },
+                { label: 'Annual extra take-home',     value: annualExtra > 0   ? `+${fmt(annualExtra, 'currency')}` : '—',  color: accent },
+                { label: 'Break-even on our fee',      value: paybackWeeks !== null && paybackWeeks > 0 ? `${paybackWeeks.toFixed(1)} wks` : '—', sub: paybackMonths !== null && paybackMonths > 0 ? `${paybackMonths.toFixed(1)} months` : null, color: isDark ? '#6BF6FF' : '#0891B2' },
                 { label: 'For every $1 in ads + system', value: returnMultiple !== null ? `$${returnMultiple.toFixed(2)}` : '—', sub: 'in gross profit', color: isDark ? '#6BF6FF' : '#0891B2' },
               ].map((card) => (
                 <div key={card.label} className="rounded-[20px] p-5 flex flex-col" style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}` }}>
