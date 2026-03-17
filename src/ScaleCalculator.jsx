@@ -148,14 +148,6 @@ export default function ScaleCalculator() {
   const paybackWeeks = paybackMonths !== null ? paybackMonths * 4.33 : null
   const annualExtra = deltaMonthly * 12
 
-  const verdictLevel = returnMultiple === null ? 'neutral' : returnMultiple < 2 ? 'red' : returnMultiple < 3 ? 'yellow' : 'green'
-  const verdictColors = {
-    red:     { bg: isDark ? 'rgba(136,19,55,0.22)' : 'rgba(251,113,133,0.10)', border: isDark ? 'rgba(251,113,133,0.25)' : 'rgba(190,18,60,0.18)', text: isDark ? '#FDA4AF' : '#BE123C', label: 'Not Worth It' },
-    yellow:  { bg: isDark ? 'rgba(120,92,22,0.20)' : 'rgba(250,204,21,0.12)',  border: isDark ? 'rgba(250,204,21,0.25)'  : 'rgba(161,98,7,0.20)',  text: isDark ? '#FDE68A' : '#A16207', label: 'Borderline' },
-    green:   { bg: isDark ? 'rgba(111,230,0,0.10)' : 'rgba(111,230,0,0.10)',   border: isDark ? 'rgba(111,230,0,0.22)'   : 'rgba(111,230,0,0.25)', text: isDark ? accent   : '#4D9B00', label: 'No-Brainer' },
-    neutral: { bg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(5,5,5,0.03)',     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(5,5,5,0.08)',     text: palette.textMuted, label: 'Enter your numbers' },
-  }
-
   const palette = useMemo(() => ({
     bg: isDark ? '#050505' : '#FFFFFF',
     bgSecondary: isDark ? 'rgba(255,255,255,0.028)' : 'rgba(10,10,10,0.035)',
@@ -175,7 +167,8 @@ export default function ScaleCalculator() {
       : 'radial-gradient(circle at top, rgba(111,230,0,0.10), transparent 22%), radial-gradient(circle at 80% 0%, rgba(111,230,0,0.08), transparent 18%)',
   }), [isDark])
 
-  // move verdictColors here so palette is defined
+  const verdictLevel = returnMultiple === null ? 'neutral' : returnMultiple < 2 ? 'red' : returnMultiple < 3 ? 'yellow' : 'green'
+
   const vc = {
     red:     { bg: isDark ? 'rgba(136,19,55,0.22)' : 'rgba(251,113,133,0.10)', border: isDark ? 'rgba(251,113,133,0.25)' : 'rgba(190,18,60,0.18)', text: isDark ? '#FDA4AF' : '#BE123C', label: 'Not Worth It' },
     yellow:  { bg: isDark ? 'rgba(120,92,22,0.20)' : 'rgba(250,204,21,0.12)',  border: isDark ? 'rgba(250,204,21,0.25)'  : 'rgba(161,98,7,0.20)',  text: isDark ? '#FDE68A' : '#A16207', label: 'Borderline' },
