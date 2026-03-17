@@ -255,7 +255,7 @@ export default function ScaleCalculator() {
               <div>
                 <div className="text-sm font-bold uppercase tracking-[0.12em] mb-1" style={{ color: palette.textSoft }}>Close rate lift (percentage points)</div>
                 <div className="text-xs mb-2" style={{ color: palette.textSoft }}>Your current rate is {(closeRateCurrent * 100).toFixed(1)}% — this adds on top</div>
-                <SmallInput value={closeRateLiftPts} onChange={(v) => setCloseRateLiftPts(clamp(v, 0, 100))} suffix="pp" palette={palette} />
+                <SmallInput value={closeRateLiftPts} onChange={(v) => setCloseRateLiftPts(clamp(v, 0, 100))} suffix="%" palette={palette} />
               </div>
             </div>
 
