@@ -129,11 +129,15 @@ export default function ScaleCalculator() {
   const leadsNewAuto = Math.round(leadsPerMonth * (1 + leadLift))
   const closeRateLiftAuto = closeLift * 100
 
-  const [newLeadsOverride, setNewLeadsOverride] = useState(null)
-  const [closeRateLiftOverride, setCloseRateLiftOverride] = useState(null)
+  const [newLeadsOverride, setNewLeadsOverride] = useState(leadsNewAuto)
+  const [closeRateLiftOverride, setCloseRateLiftOverride] = useState(closeRateLiftAuto)
 
-  const leadsNew = newLeadsOverride !== null ? newLeadsOverride : leadsNewAuto
-  const closeRateLiftPct = closeRateLiftOverride !== null ? closeRateLiftOverride / 100 : closeLift
+  // Keep inputs in sync when improvement level or base leads change
+  useEffect(() => { setNewLeadsOverride(leadsNewAuto) }, [improvementLevel, leadsPerMonth])
+  useEffect(() => { setCloseRateLiftOverride(closeRateLiftAuto) }, [improvementLevel])
+
+  const leadsNew = newLeadsOverride
+  const closeRateLiftPct = closeRateLiftOverride / 100
   const closeRateNew = Math.min(closeRateCurrent * (1 + closeRateLiftPct), 1)
   const jobsNew = leadsNew * closeRateNew
   const monthlyProfitNew = jobsNew * gpPerJob
@@ -324,22 +328,22 @@ export default function ScaleCalculator() {
                   <tr>
                     <td style={tdLabelStyle}>Leads / mo</td>
                     <td style={tdStyle(false)}>{fmt(leadsPerMonth, 'number', 0)}</td>
-                    <td style={tdStyle(true)}>{fmt(leadsNew, 'number', 0)}</td>
+                    <td style={tdStyle(true)}>+{fmt(leadsNew - leadsPerMonth, 'number', 0)} ({fmt(leadsNew, 'number', 0)})</td>
                   </tr>
                   <tr>
                     <td style={tdLabelStyle}>Jobs / mo</td>
                     <td style={tdStyle(false)}>{fmt(jobsPerMonth, 'number', 0)}</td>
-                    <td style={tdStyle(true)}>{fmt(jobsNew, 'number', 1)}</td>
+                    <td style={tdStyle(true)}>+{fmt(jobsNew - jobsPerMonth, 'number', 1)} ({fmt(jobsNew, 'number', 1)})</td>
                   </tr>
                   <tr>
                     <td style={tdLabelStyle}>Monthly profit</td>
                     <td style={tdStyle(false)}>{fmt(monthlyProfitCurrent, 'currency')}</td>
-                    <td style={tdStyle(true)}>{fmt(monthlyProfitNew, 'currency')}</td>
+                    <td style={tdStyle(true)}>+{fmt(deltaMonthly, 'currency')} ({fmt(monthlyProfitNew, 'currency')})</td>
                   </tr>
                   <tr>
                     <td style={tdLabelStyle}>Yearly profit</td>
                     <td style={tdStyle(false)}>{fmt(yearlyProfitCurrent, 'currency')}</td>
-                    <td style={tdStyle(true)}>{fmt(yearlyProfitNew, 'currency')}</td>
+                    <td style={tdStyle(true)}>+{fmt(deltaMonthly * 12, 'currency')} ({fmt(yearlyProfitNew, 'currency')})</td>
                   </tr>
                 </tbody>
               </table>
