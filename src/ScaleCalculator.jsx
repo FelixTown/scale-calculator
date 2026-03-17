@@ -248,13 +248,13 @@ export default function ScaleCalculator() {
             {/* Two additive inputs */}
             <div className="grid grid-cols-2 gap-4 mt-4 mb-6">
               <div>
-                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-1" style={{ color: palette.textSoft }}>Additional leads / mo</div>
-                <div className="text-xs mb-2" style={{ color: palette.textSoft }}>Extra leads our system brings in</div>
+                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-1" style={{ color: palette.textSoft }}>Additional leads / mo we bring</div>
+                <div className="text-xs mb-2" style={{ color: palette.textSoft }}>Added on top of your current {leadsPerMonth} leads</div>
                 <SmallInput value={additionalLeads} onChange={(v) => setAdditionalLeads(clamp(v, 0))} palette={palette} />
               </div>
               <div>
-                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-1" style={{ color: palette.textSoft }}>Close rate lift</div>
-                <div className="text-xs mb-2" style={{ color: palette.textSoft }}>Extra percentage points on close rate</div>
+                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-1" style={{ color: palette.textSoft }}>Close rate lift (percentage points)</div>
+                <div className="text-xs mb-2" style={{ color: palette.textSoft }}>Your current rate is {(closeRateCurrent * 100).toFixed(1)}% — this adds on top</div>
                 <SmallInput value={closeRateLiftPts} onChange={(v) => setCloseRateLiftPts(clamp(v, 0, 100))} suffix="pp" palette={palette} />
               </div>
             </div>
