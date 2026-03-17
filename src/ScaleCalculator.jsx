@@ -129,15 +129,15 @@ export default function ScaleCalculator() {
   const leadsNewAuto = Math.round(leadsPerMonth * (1 + leadLift))
   const closeRateLiftAuto = closeLift * 100
 
-  const [newLeadsOverride, setNewLeadsOverride] = useState(leadsNewAuto)
-  const [closeRateLiftOverride, setCloseRateLiftOverride] = useState(closeRateLiftAuto)
+  const [newLeadsInput, setNewLeadsInput] = useState(leadsNewAuto)
+  const [closeRateLiftInput, setCloseRateLiftInput] = useState(closeRateLiftAuto)
 
   // Keep inputs in sync when improvement level or base leads change
-  useEffect(() => { setNewLeadsOverride(leadsNewAuto) }, [improvementLevel, leadsPerMonth])
-  useEffect(() => { setCloseRateLiftOverride(closeRateLiftAuto) }, [improvementLevel])
+  useEffect(() => { setNewLeadsInput(Math.round(leadsPerMonth * (1 + leadLift))) }, [improvementLevel, leadsPerMonth])
+  useEffect(() => { setCloseRateLiftInput(closeLift * 100) }, [improvementLevel])
 
-  const leadsNew = newLeadsOverride
-  const closeRateLiftPct = closeRateLiftOverride / 100
+  const leadsNew = newLeadsInput || leadsNewAuto
+  const closeRateLiftPct = (closeRateLiftInput || 0) / 100
   const closeRateNew = Math.min(closeRateCurrent * (1 + closeRateLiftPct), 1)
   const jobsNew = leadsNew * closeRateNew
   const monthlyProfitNew = jobsNew * gpPerJob
@@ -290,8 +290,8 @@ export default function ScaleCalculator() {
                 <div className="relative">
                   <input
                     type="number"
-                    value={newLeadsOverride !== null ? newLeadsOverride : leadsNewAuto}
-                    onChange={(e) => setNewLeadsOverride(Number(e.target.value))}
+                    value={newLeadsInput}
+                    onChange={(e) => setNewLeadsInput(Number(e.target.value))}
                     className="h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold outline-none pr-4 pl-4"
                     style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}
                   />
@@ -303,8 +303,8 @@ export default function ScaleCalculator() {
                 <div className="relative">
                   <input
                     type="number"
-                    value={closeRateLiftOverride !== null ? closeRateLiftOverride : closeRateLiftAuto}
-                    onChange={(e) => setCloseRateLiftOverride(Number(e.target.value))}
+                    value={closeRateLiftInput}
+                    onChange={(e) => setCloseRateLiftInput(Number(e.target.value))}
                     className="h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold outline-none pr-8 pl-4"
                     style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}
                   />
@@ -328,22 +328,22 @@ export default function ScaleCalculator() {
                   <tr>
                     <td style={tdLabelStyle}>Leads / mo</td>
                     <td style={tdStyle(false)}>{fmt(leadsPerMonth, 'number', 0)}</td>
-                    <td style={tdStyle(true)}>+{fmt(leadsNew - leadsPerMonth, 'number', 0)} ({fmt(leadsNew, 'number', 0)})</td>
+                    <td style={tdStyle(true)}>+{fmt(Math.max(0, leadsNew - leadsPerMonth), 'number', 0)} ({fmt(leadsNew, 'number', 0)})</td>
                   </tr>
                   <tr>
                     <td style={tdLabelStyle}>Jobs / mo</td>
                     <td style={tdStyle(false)}>{fmt(jobsPerMonth, 'number', 0)}</td>
-                    <td style={tdStyle(true)}>+{fmt(jobsNew - jobsPerMonth, 'number', 1)} ({fmt(jobsNew, 'number', 1)})</td>
+                    <td style={tdStyle(true)}>+{fmt(Math.max(0, jobsNew - jobsPerMonth), 'number', 1)} ({fmt(jobsNew, 'number', 1)})</td>
                   </tr>
                   <tr>
                     <td style={tdLabelStyle}>Monthly profit</td>
                     <td style={tdStyle(false)}>{fmt(monthlyProfitCurrent, 'currency')}</td>
-                    <td style={tdStyle(true)}>+{fmt(deltaMonthly, 'currency')} ({fmt(monthlyProfitNew, 'currency')})</td>
+                    <td style={tdStyle(true)}>+{fmt(Math.max(0, deltaMonthly), 'currency')} ({fmt(monthlyProfitNew, 'currency')})</td>
                   </tr>
                   <tr>
                     <td style={tdLabelStyle}>Yearly profit</td>
                     <td style={tdStyle(false)}>{fmt(yearlyProfitCurrent, 'currency')}</td>
-                    <td style={tdStyle(true)}>+{fmt(deltaMonthly * 12, 'currency')} ({fmt(yearlyProfitNew, 'currency')})</td>
+                    <td style={tdStyle(true)}>+{fmt(Math.max(0, deltaMonthly * 12), 'currency')} ({fmt(yearlyProfitNew, 'currency')})</td>
                   </tr>
                 </tbody>
               </table>
