@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Moon, SunMedium } from 'lucide-react'
+import { Moon, Sun } from 'lucide-react'
 
 const ACCENT = '#6FE600'
 
@@ -286,7 +286,7 @@ export default function ScaleCalculator() {
               }}
             >
               <span className="flex h-8 w-8 items-center justify-center rounded-full" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(5,5,5,0.05)' }}>
-                {isDark ? <SunMedium size={16} /> : <Moon size={16} />}
+                {isDark ? <Sun size={16} /> : <Moon size={16} />}
               </span>
               {isDark ? 'Light Mode' : 'Dark Mode'}
             </button>
