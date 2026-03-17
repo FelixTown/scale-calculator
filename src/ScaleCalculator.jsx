@@ -127,17 +127,21 @@ export default function ScaleCalculator() {
   const yearlyProfitCurrent = monthlyProfitCurrent * 12
 
   const leadsNewAuto = Math.round(leadsPerMonth * (1 + leadLift))
-  const closeRateLiftAuto = closeLift * 100
+  const closeRateLiftAuto = Math.round(closeLift * 100)
 
-  const [newLeadsInput, setNewLeadsInput] = useState(leadsNewAuto)
-  const [closeRateLiftInput, setCloseRateLiftInput] = useState(closeRateLiftAuto)
+  const [newLeadsManual, setNewLeadsManual] = useState(null)
+  const [closeRateLiftManual, setCloseRateLiftManual] = useState(null)
+  const [lastImprovementLevel, setLastImprovementLevel] = useState(improvementLevel)
 
-  // Keep inputs in sync when improvement level or base leads change
-  useEffect(() => { setNewLeadsInput(Math.round(leadsPerMonth * (1 + leadLift))) }, [improvementLevel, leadsPerMonth])
-  useEffect(() => { setCloseRateLiftInput(closeLift * 100) }, [improvementLevel])
+  // Reset manual overrides when improvement level changes
+  if (lastImprovementLevel !== improvementLevel) {
+    setLastImprovementLevel(improvementLevel)
+    setNewLeadsManual(null)
+    setCloseRateLiftManual(null)
+  }
 
-  const leadsNew = newLeadsInput || leadsNewAuto
-  const closeRateLiftPct = (closeRateLiftInput || 0) / 100
+  const leadsNew = newLeadsManual !== null ? newLeadsManual : leadsNewAuto
+  const closeRateLiftPct = (closeRateLiftManual !== null ? closeRateLiftManual : closeRateLiftAuto) / 100
   const closeRateNew = Math.min(closeRateCurrent * (1 + closeRateLiftPct), 1)
   const jobsNew = leadsNew * closeRateNew
   const monthlyProfitNew = jobsNew * gpPerJob
@@ -290,8 +294,8 @@ export default function ScaleCalculator() {
                 <div className="relative">
                   <input
                     type="number"
-                    value={newLeadsInput}
-                    onChange={(e) => setNewLeadsInput(Number(e.target.value))}
+                    value={leadsNew}
+                    onChange={(e) => setNewLeadsManual(Number(e.target.value))}
                     className="h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold outline-none pr-4 pl-4"
                     style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}
                   />
@@ -303,8 +307,8 @@ export default function ScaleCalculator() {
                 <div className="relative">
                   <input
                     type="number"
-                    value={closeRateLiftInput}
-                    onChange={(e) => setCloseRateLiftInput(Number(e.target.value))}
+                    value={closeRateLiftManual !== null ? closeRateLiftManual : closeRateLiftAuto}
+                    onChange={(e) => setCloseRateLiftManual(Number(e.target.value))}
                     className="h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold outline-none pr-8 pl-4"
                     style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}
                   />
