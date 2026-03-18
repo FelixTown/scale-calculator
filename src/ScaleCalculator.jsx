@@ -22,16 +22,16 @@ function Section({ accentColor, title, subtitle, children, palette }) {
   const ac = accentColor || ACCENT
   return (
     <section className="overflow-hidden rounded-[30px]" style={{ background: palette.panelStrong, border: `1px solid ${palette.border}`, boxShadow: `${palette.glow}, ${palette.inset}`, backdropFilter: 'blur(18px)' }}>
-      <div className="px-6 pb-2 pt-5 md:px-8 md:pt-6">
+      <div className="px-5 pb-2 pt-5 md:px-8 md:pt-6">
         <div className="flex items-center gap-3">
-          <div className="h-7 w-[3px] rounded-full" style={{ background: ac, boxShadow: `0 0 18px ${ac}` }} />
+          <div className="h-7 w-[3px] rounded-full shrink-0" style={{ background: ac, boxShadow: `0 0 18px ${ac}` }} />
           <div>
             <div className="text-sm font-bold uppercase tracking-[0.22em]" style={{ color: palette.textMuted }}>{title}</div>
             {subtitle ? <div className="mt-1 text-sm" style={{ color: palette.textSoft }}>{subtitle}</div> : null}
           </div>
         </div>
       </div>
-      <div className="px-6 pb-6 md:px-8 md:pb-8">{children}</div>
+      <div className="px-5 pb-6 md:px-8 md:pb-8">{children}</div>
     </section>
   )
 }
@@ -41,29 +41,28 @@ function InputRow({ label, value, onChange, suffix, prefix, note, palette, isDar
   const isFocused = useRef(false)
   useEffect(() => { if (!isFocused.current) setLocalValue(String(value)) }, [value])
   return (
-    <div className="grid grid-cols-1 gap-3 py-5 md:grid-cols-[1fr_180px] md:items-center" style={{ borderBottom: `1px solid ${palette.borderSoft}` }}>
-      <div>
-        <div className="text-[20px] font-medium tracking-[-0.02em] md:text-[22px]" style={{ color: palette.text }}>{label}</div>
-        {note ? <div className="mt-1 max-w-2xl text-sm leading-6" style={{ color: palette.textSoft }}>{note}</div> : null}
+    <div className="flex items-center justify-between gap-4 py-4" style={{ borderBottom: `1px solid ${palette.borderSoft}` }}>
+      <div className="flex-1 min-w-0">
+        <div className="text-[16px] font-medium md:text-[18px]" style={{ color: palette.text }}>{label}</div>
+        {note ? <div className="mt-0.5 text-xs leading-5 max-w-xs" style={{ color: palette.textSoft }}>{note}</div> : null}
       </div>
-      <div className="relative">
-        {prefix ? <span className="absolute left-4 top-1/2 -translate-y-1/2 text-base font-medium" style={{ color: palette.textSoft }}>{prefix}</span> : null}
+      <div className="relative shrink-0 w-[130px] md:w-[160px]">
+        {prefix ? <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: palette.textSoft }}>{prefix}</span> : null}
         <input
           type="number"
           value={localValue}
           onFocus={() => { isFocused.current = true }}
           onChange={(e) => { setLocalValue(e.target.value); onChange(e.target.value) }}
           onBlur={(e) => { isFocused.current = false; onChange(e.target.value); setLocalValue(String(value)) }}
-          className={`h-[60px] w-full rounded-[16px] text-right text-[24px] font-semibold tracking-[-0.03em] outline-none transition ${prefix ? 'pl-10' : 'pl-5'} ${suffix ? 'pr-10' : 'pr-5'}`}
+          className={`h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold tracking-[-0.03em] outline-none transition ${prefix ? 'pl-8' : 'pl-3'} ${suffix ? 'pr-9' : 'pr-3'}`}
           style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text, boxShadow: isDark ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'inset 0 1px 0 rgba(255,255,255,0.85)' }}
         />
-        {suffix ? <span className="absolute right-4 top-1/2 -translate-y-1/2 text-base font-medium" style={{ color: palette.textSoft }}>{suffix}</span> : null}
+        {suffix ? <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: palette.textSoft }}>{suffix}</span> : null}
       </div>
     </div>
   )
 }
 
-// Simple inline number input for the volume section overrides
 function SmallInput({ value, onChange, suffix, palette }) {
   const [local, setLocal] = useState(String(value))
   const isFocused = useRef(false)
@@ -76,35 +75,28 @@ function SmallInput({ value, onChange, suffix, palette }) {
         onFocus={() => { isFocused.current = true }}
         onChange={(e) => { setLocal(e.target.value); onChange(e.target.value) }}
         onBlur={(e) => { isFocused.current = false; onChange(e.target.value); setLocal(String(value)) }}
-        className={`h-[52px] w-full rounded-[14px] text-right text-[20px] font-semibold outline-none pl-4 ${suffix ? 'pr-10' : 'pr-4'}`}
+        className={`h-[48px] w-full rounded-[12px] text-right text-[18px] font-semibold outline-none pl-3 ${suffix ? 'pr-9' : 'pr-3'}`}
         style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}
       />
-      {suffix ? <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium" style={{ color: palette.textSoft }}>{suffix}</span> : null}
+      {suffix ? <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium" style={{ color: palette.textSoft }}>{suffix}</span> : null}
     </div>
   )
 }
 
 export default function ScaleCalculator() {
   const accent = ACCENT
-  const [theme, setTheme] = useState('dark')
+  const [theme, setTheme] = useState('light')
   const isDark = theme === 'dark'
 
-  // ── Inputs: Your Shop Today ──
-  const [jobsPerMonth, setJobsPerMonth]     = useState(30)
-  const [leadsPerMonth, setLeadsPerMonth]   = useState(60)
-  const [avgJobValue, setAvgJobValue]       = useState(350)
-  const [grossMargin, setGrossMargin]       = useState(65)
-  const [adSpend, setAdSpend]               = useState(0)
-
-  // ── Inputs: Working With Us ──
-  const [monthlyFee, setMonthlyFee] = useState(297)
-  const [setupFee, setSetupFee]     = useState(0)
-
-  // ── Inputs: Volume overrides (additive) ──
-  // additionalLeads = extra leads per month we bring
-  // closeRateLiftPts = extra percentage points on close rate (e.g. 10 means +10%)
-  const [additionalLeads, setAdditionalLeads]       = useState(15)
-  const [closeRateLiftPts, setCloseRateLiftPts]     = useState(10)
+  const [jobsPerMonth, setJobsPerMonth]   = useState(30)
+  const [leadsPerMonth, setLeadsPerMonth] = useState(60)
+  const [avgJobValue, setAvgJobValue]     = useState(350)
+  const [grossMargin, setGrossMargin]     = useState(65)
+  const [adSpend, setAdSpend]             = useState(0)
+  const [monthlyFee, setMonthlyFee]       = useState(297)
+  const [setupFee, setSetupFee]           = useState(0)
+  const [additionalLeads, setAdditionalLeads]   = useState(15)
+  const [closeRateLiftPts, setCloseRateLiftPts] = useState(10)
 
   const clamp = (v, lo, hi) => {
     const n = Number(v)
@@ -112,56 +104,46 @@ export default function ScaleCalculator() {
   }
 
   const palette = useMemo(() => ({
-    bg:          isDark ? '#050505'                    : '#FFFFFF',
-    bgSecondary: isDark ? 'rgba(255,255,255,0.028)'   : 'rgba(10,10,10,0.035)',
-    panelStrong: isDark ? 'rgba(255,255,255,0.045)'   : 'rgba(255,255,255,0.98)',
-    border:      isDark ? 'rgba(255,255,255,0.08)'    : 'rgba(5,5,5,0.10)',
-    borderSoft:  isDark ? 'rgba(255,255,255,0.05)'    : 'rgba(5,5,5,0.06)',
-    text:        isDark ? '#F5F7FA'                   : '#050505',
-    textMuted:   isDark ? 'rgba(245,247,250,0.72)'    : 'rgba(5,5,5,0.62)',
-    textSoft:    isDark ? 'rgba(245,247,250,0.46)'    : 'rgba(5,5,5,0.42)',
-    glow:        isDark ? '0 0 0 1px rgba(255,255,255,0.03), 0 30px 90px rgba(0,0,0,0.55)' : '0 0 0 1px rgba(5,5,5,0.04), 0 20px 60px rgba(5,5,5,0.08)',
+    bg:          isDark ? '#050505'                  : '#F4F4F5',
+    bgSecondary: isDark ? 'rgba(255,255,255,0.028)' : 'rgba(10,10,10,0.05)',
+    panelStrong: isDark ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.98)',
+    border:      isDark ? 'rgba(255,255,255,0.08)'  : 'rgba(5,5,5,0.10)',
+    borderSoft:  isDark ? 'rgba(255,255,255,0.05)'  : 'rgba(5,5,5,0.06)',
+    text:        isDark ? '#F5F7FA'                 : '#050505',
+    textMuted:   isDark ? 'rgba(245,247,250,0.72)'  : 'rgba(5,5,5,0.62)',
+    textSoft:    isDark ? 'rgba(245,247,250,0.46)'  : 'rgba(5,5,5,0.42)',
+    glow:        isDark ? '0 0 0 1px rgba(255,255,255,0.03), 0 20px 60px rgba(0,0,0,0.55)' : '0 0 0 1px rgba(5,5,5,0.04), 0 8px 30px rgba(5,5,5,0.07)',
     inset:       isDark ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'inset 0 1px 0 rgba(255,255,255,0.9)',
     hero:        isDark
-      ? 'radial-gradient(circle at top left, rgba(111,230,0,0.14), transparent 28%), radial-gradient(circle at top right, rgba(255,255,255,0.06), transparent 30%), linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))'
-      : 'radial-gradient(circle at top left, rgba(111,230,0,0.12), transparent 28%), radial-gradient(circle at top right, rgba(111,230,0,0.08), transparent 30%), linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98))',
-    pageGlow:    isDark
-      ? 'radial-gradient(circle at top, rgba(111,230,0,0.11), transparent 22%), radial-gradient(circle at 80% 0%, rgba(255,255,255,0.05), transparent 18%)'
-      : 'radial-gradient(circle at top, rgba(111,230,0,0.10), transparent 22%), radial-gradient(circle at 80% 0%, rgba(111,230,0,0.08), transparent 18%)',
+      ? 'linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015))'
+      : 'linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98))',
+    pageGlow:    isDark ? 'rgba(5,5,5,1)' : 'rgba(244,244,245,1)',
   }), [isDark])
 
-  // ── Current derived values ──
-  const closeRateCurrent   = leadsPerMonth > 0 ? jobsPerMonth / leadsPerMonth : 0  // e.g. 0.50
-  const gpPerJob           = avgJobValue * (grossMargin / 100)
+  const closeRateCurrent     = leadsPerMonth > 0 ? jobsPerMonth / leadsPerMonth : 0
+  const gpPerJob             = avgJobValue * (grossMargin / 100)
   const monthlyProfitCurrent = jobsPerMonth * gpPerJob
   const yearlyProfitCurrent  = monthlyProfitCurrent * 12
-
-  // ── With ScaleAuto derived values ──
-  // additionalLeads = extra leads from our system
-  // closeRateLiftPts = extra percentage POINTS on close rate (e.g. 10 = +10pp, so 50% → 60%)
-  const newLeadsDelta      = additionalLeads
-  const leadsTotal         = leadsPerMonth + newLeadsDelta
-  const closeRateNew       = Math.min((closeRateCurrent * 100 + closeRateLiftPts) / 100, 1)
-  const newJobsDelta       = leadsTotal * closeRateNew - jobsPerMonth   // extra jobs from both more leads + better close rate
-  const jobsTotal          = jobsPerMonth + newJobsDelta
-  const monthlyProfitNew   = jobsTotal * gpPerJob
-  const yearlyProfitNew    = monthlyProfitNew * 12
-  const deltaMonthly       = monthlyProfitNew - monthlyProfitCurrent
-
-  // ── Verdict ──
-  const totalCostPerMonth  = adSpend + monthlyFee
-  const cacNew             = jobsTotal > 0 ? totalCostPerMonth / jobsTotal : null
-  const returnMultiple     = cacNew !== null && cacNew > 0 ? gpPerJob / cacNew : null
-  const paybackMonths      = deltaMonthly > 0 ? (setupFee + monthlyFee) / deltaMonthly : null
-  const paybackWeeks       = paybackMonths !== null ? paybackMonths * 4.33 : null
-  const annualExtra        = deltaMonthly * 12
+  const leadsTotal           = leadsPerMonth + additionalLeads
+  const closeRateNew         = Math.min((closeRateCurrent * 100 + closeRateLiftPts) / 100, 1)
+  const jobsTotal            = leadsTotal * closeRateNew
+  const newJobsDelta         = jobsTotal - jobsPerMonth
+  const monthlyProfitNew     = jobsTotal * gpPerJob
+  const yearlyProfitNew      = monthlyProfitNew * 12
+  const deltaMonthly         = monthlyProfitNew - monthlyProfitCurrent
+  const totalCostPerMonth    = adSpend + monthlyFee
+  const cacNew               = jobsTotal > 0 ? totalCostPerMonth / jobsTotal : null
+  const returnMultiple       = cacNew !== null && cacNew > 0 ? gpPerJob / cacNew : null
+  const paybackMonths        = deltaMonthly > 0 ? (setupFee + monthlyFee) / deltaMonthly : null
+  const paybackWeeks         = paybackMonths !== null ? paybackMonths * 4.33 : null
+  const annualExtra          = deltaMonthly * 12
 
   const verdictLevel = returnMultiple === null ? 'neutral' : returnMultiple < 2 ? 'red' : returnMultiple < 3 ? 'yellow' : 'green'
   const vc = {
-    red:     { bg: isDark ? 'rgba(136,19,55,0.22)'    : 'rgba(251,113,133,0.10)', border: isDark ? 'rgba(251,113,133,0.25)' : 'rgba(190,18,60,0.18)',  text: isDark ? '#FDA4AF' : '#BE123C', label: 'Not Worth It' },
-    yellow:  { bg: isDark ? 'rgba(120,92,22,0.20)'    : 'rgba(250,204,21,0.12)',  border: isDark ? 'rgba(250,204,21,0.25)'  : 'rgba(161,98,7,0.20)',   text: isDark ? '#FDE68A' : '#A16207', label: 'Borderline' },
-    green:   { bg: isDark ? 'rgba(111,230,0,0.10)'    : 'rgba(111,230,0,0.10)',   border: isDark ? 'rgba(111,230,0,0.22)'   : 'rgba(111,230,0,0.25)',  text: isDark ? accent   : '#4D9B00', label: 'No-Brainer' },
-    neutral: { bg: isDark ? 'rgba(255,255,255,0.04)'  : 'rgba(5,5,5,0.03)',       border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(5,5,5,0.08)',       text: palette.textMuted,              label: 'Enter your numbers' },
+    red:     { bg: isDark ? 'rgba(136,19,55,0.22)'   : 'rgba(251,113,133,0.10)', border: isDark ? 'rgba(251,113,133,0.25)' : 'rgba(190,18,60,0.18)',  text: isDark ? '#FDA4AF' : '#BE123C', label: 'Not Worth It' },
+    yellow:  { bg: isDark ? 'rgba(120,92,22,0.20)'   : 'rgba(250,204,21,0.12)',  border: isDark ? 'rgba(250,204,21,0.25)'  : 'rgba(161,98,7,0.20)',   text: isDark ? '#FDE68A' : '#A16207', label: 'Borderline' },
+    green:   { bg: isDark ? 'rgba(111,230,0,0.10)'   : 'rgba(111,230,0,0.10)',   border: isDark ? 'rgba(111,230,0,0.22)'   : 'rgba(111,230,0,0.25)',  text: isDark ? accent   : '#4D9B00', label: 'No-Brainer' },
+    neutral: { bg: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(5,5,5,0.03)',       border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(5,5,5,0.08)',       text: palette.textMuted,              label: 'Enter your numbers' },
   }[verdictLevel]
 
   const verdictMessage = verdictLevel === 'neutral' ? 'Enter your numbers above to see your ROI.'
@@ -179,61 +161,67 @@ export default function ScaleCalculator() {
 
   const p = { palette, isDark }
 
-  const thLabelStyle = { color: palette.textSoft, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', padding: '12px 16px', textAlign: 'left' }
-  const thStyle      = { color: palette.textSoft, fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', padding: '12px 16px', textAlign: 'right' }
-  const tdLabelStyle = { color: palette.textMuted, fontSize: '18px', fontWeight: 500, padding: '14px 16px', borderTop: `1px solid ${palette.borderSoft}` }
-  const tdStyle      = (hi) => ({ color: hi ? accent : palette.text, fontSize: '20px', fontWeight: 600, padding: '14px 16px', textAlign: 'right', borderTop: `1px solid ${palette.borderSoft}` })
+  // Table styles — smaller font for mobile fit
+  const thL = { color: palette.textSoft, fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.10em', padding: '10px 10px', textAlign: 'left' }
+  const thR = { color: palette.textSoft, fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.10em', padding: '10px 10px', textAlign: 'right' }
+  const tdL = { color: palette.textMuted, fontSize: '14px', fontWeight: 500, padding: '12px 10px', borderTop: `1px solid ${palette.borderSoft}` }
+  const tdR = (hi) => ({ color: hi ? accent : palette.text, fontSize: '14px', fontWeight: 600, padding: '12px 10px', textAlign: 'right', borderTop: `1px solid ${palette.borderSoft}`, whiteSpace: 'nowrap' })
 
   return (
-    <div className="min-h-screen" style={{ background: `${palette.pageGlow}, ${palette.bg}` }}>
-      <div className="mx-auto max-w-5xl px-4 py-8 md:px-6 md:py-10">
+    <div className="min-h-screen" style={{ background: palette.pageGlow }}>
+      <div className="mx-auto max-w-3xl px-3 py-6 md:px-6 md:py-10">
 
         {/* Hero */}
-        <div className="mb-8 rounded-[34px] p-6 md:p-8" style={{ background: palette.hero, border: `1px solid ${palette.border}`, boxShadow: `${palette.glow}, inset 0 1px 0 rgba(255,255,255,${isDark ? '0.05' : '0.85'})` }}>
-          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.24em]" style={{ background: isDark ? 'rgba(111,230,0,0.10)' : 'rgba(111,230,0,0.12)', border: `1px solid ${isDark ? 'rgba(111,230,0,0.22)' : 'rgba(111,230,0,0.24)'}`, color: isDark ? '#C9FF9F' : '#4D9B00' }}>
-                Scale Automotive
+        <div className="mb-6 rounded-[28px] p-5 md:p-8" style={{ background: palette.hero, border: `1px solid ${palette.border}`, boxShadow: palette.glow }}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              {/* Logo */}
+              <div className="mb-4">
+                <img
+                  src="/scale-auto.svg"
+                  alt="Scale Auto"
+                  className="h-10 md:h-14 w-auto"
+                />
               </div>
-              <h1 className="mt-4 text-4xl font-semibold tracking-[-0.06em] md:text-5xl" style={{ color: palette.text }}>See your ROI before you decide.</h1>
-              <p className="mt-3 text-lg leading-8" style={{ color: palette.textMuted }}>Your numbers. Our system. Here's exactly what changes.</p>
+              <h1 className="text-2xl font-semibold tracking-[-0.04em] md:text-4xl" style={{ color: palette.text }}>
+                See your ROI before you decide.
+              </h1>
+              <p className="mt-2 text-base leading-7 md:text-lg" style={{ color: palette.textMuted }}>
+                Your numbers. Our system. Here's exactly what changes.
+              </p>
             </div>
-            <button onClick={() => setTheme(isDark ? 'light' : 'dark')} className="inline-flex h-12 items-center gap-3 self-start rounded-full px-5 text-sm font-semibold uppercase tracking-[0.14em] transition" style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}>
-              <span className="flex h-7 w-7 items-center justify-center rounded-full" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(5,5,5,0.05)' }}>
+            <button onClick={() => setTheme(isDark ? 'light' : 'dark')} className="inline-flex h-10 items-center gap-2 shrink-0 rounded-full px-4 text-xs font-semibold uppercase tracking-[0.14em] transition" style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}`, color: palette.text }}>
+              <span className="flex h-6 w-6 items-center justify-center rounded-full" style={{ background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(5,5,5,0.05)' }}>
                 {isDark ? <SunIcon /> : <MoonIcon />}
               </span>
-              {isDark ? 'Light' : 'Dark'}
+              <span className="hidden sm:inline">{isDark ? 'Light' : 'Dark'}</span>
             </button>
           </div>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
 
           {/* Section 1: Your Shop Today */}
           <Section title="Your Shop Today" subtitle="What your business looks like right now" {...p}>
-            <InputRow {...p} label="Jobs per month" value={jobsPerMonth} onChange={(v) => setJobsPerMonth(clamp(v, 0))} note="How many paying jobs do you complete each month?" />
-            <InputRow {...p} label="Leads per month" value={leadsPerMonth} onChange={(v) => setLeadsPerMonth(clamp(v, 1))} note="All inbound enquiries — calls, forms, DMs, walk-ins." />
-            <div className="py-5" style={{ borderBottom: `1px solid ${palette.borderSoft}` }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-[20px] font-medium" style={{ color: palette.text }}>Close rate</div>
-                  <div className="text-sm mt-1" style={{ color: palette.textSoft }}>Calculated from jobs / leads</div>
-                </div>
-                <div className="text-[28px] font-semibold" style={{ color: palette.textMuted }}>{(closeRateCurrent * 100).toFixed(1)}%</div>
+            <InputRow {...p} label="Jobs per month" value={jobsPerMonth} onChange={(v) => setJobsPerMonth(clamp(v, 0))} />
+            <InputRow {...p} label="Leads per month" value={leadsPerMonth} onChange={(v) => setLeadsPerMonth(clamp(v, 1))} />
+            <div className="flex items-center justify-between py-4" style={{ borderBottom: `1px solid ${palette.borderSoft}` }}>
+              <div>
+                <div className="text-[16px] font-medium md:text-[18px]" style={{ color: palette.text }}>Close rate</div>
+                <div className="text-xs mt-0.5" style={{ color: palette.textSoft }}>Calculated from jobs / leads</div>
               </div>
+              <div className="text-[22px] font-semibold" style={{ color: palette.textMuted }}>{(closeRateCurrent * 100).toFixed(1)}%</div>
             </div>
-            <InputRow {...p} label="Average job value" prefix="$" value={avgJobValue} onChange={(v) => setAvgJobValue(clamp(v, 1))} note="Blended average across tint, PPF, detailing, and any other services." />
-            <InputRow {...p} label="Gross margin %" suffix="%" value={grossMargin} onChange={(v) => setGrossMargin(clamp(v, 1, 99))} note="Revenue minus direct costs (materials, labor). Not net." />
-            <div className="py-5" style={{ borderBottom: `1px solid ${palette.borderSoft}` }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-[20px] font-medium" style={{ color: palette.text }}>Gross profit per job</div>
-                  <div className="text-sm mt-1" style={{ color: palette.textSoft }}>Job value × margin</div>
-                </div>
-                <div className="text-[28px] font-semibold" style={{ color: accent }}>{fmt(gpPerJob, 'currency')}</div>
+            <InputRow {...p} label="Average job value" prefix="$" value={avgJobValue} onChange={(v) => setAvgJobValue(clamp(v, 1))} note="Blended avg across tint, PPF, detailing." />
+            <InputRow {...p} label="Gross margin %" suffix="%" value={grossMargin} onChange={(v) => setGrossMargin(clamp(v, 1, 99))} note="Revenue minus direct costs. Not net." />
+            <div className="flex items-center justify-between py-4" style={{ borderBottom: `1px solid ${palette.borderSoft}` }}>
+              <div>
+                <div className="text-[16px] font-medium md:text-[18px]" style={{ color: palette.text }}>Gross profit per job</div>
+                <div className="text-xs mt-0.5" style={{ color: palette.textSoft }}>Job value × margin</div>
               </div>
+              <div className="text-[22px] font-semibold" style={{ color: accent }}>{fmt(gpPerJob, 'currency')}</div>
             </div>
-            <InputRow {...p} label="Monthly ad spend" prefix="$" value={adSpend} onChange={(v) => setAdSpend(clamp(v, 0))} note="Set to 0 if you don't run paid ads." />
+            <InputRow {...p} label="Monthly ad spend" prefix="$" value={adSpend} onChange={(v) => setAdSpend(clamp(v, 0))} note="Set to 0 if no paid ads." />
           </Section>
 
           {/* Section 2: Working With Us */}
@@ -243,52 +231,49 @@ export default function ScaleCalculator() {
           </Section>
 
           {/* Section 3: Volume */}
-          <Section title="Volume" subtitle="Side-by-side: where you are vs. where you'll be" accentColor="#6BF6FF" {...p}>
-
-            {/* Two additive inputs */}
-            <div className="grid grid-cols-2 gap-4 mt-4 mb-6">
+          <Section title="Volume" subtitle="Where you are vs. where you'll be" accentColor="#6BF6FF" {...p}>
+            <div className="grid grid-cols-2 gap-3 mt-3 mb-5">
               <div>
-                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-1" style={{ color: palette.textSoft }}>Additional leads / mo we bring</div>
-                <div className="text-xs mb-2" style={{ color: palette.textSoft }}>Added on top of your current {leadsPerMonth} leads</div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.10em] mb-1" style={{ color: palette.textSoft }}>Additional leads / mo</div>
+                <div className="text-xs mb-2" style={{ color: palette.textSoft }}>On top of your {leadsPerMonth} current</div>
                 <SmallInput value={additionalLeads} onChange={(v) => setAdditionalLeads(clamp(v, 0))} palette={palette} />
               </div>
               <div>
-                <div className="text-sm font-bold uppercase tracking-[0.12em] mb-1" style={{ color: palette.textSoft }}>Close rate lift (percentage points)</div>
-                <div className="text-xs mb-2" style={{ color: palette.textSoft }}>Your current rate is {(closeRateCurrent * 100).toFixed(1)}% — this adds on top</div>
+                <div className="text-[11px] font-bold uppercase tracking-[0.10em] mb-1" style={{ color: palette.textSoft }}>Close rate lift</div>
+                <div className="text-xs mb-2" style={{ color: palette.textSoft }}>Current: {(closeRateCurrent * 100).toFixed(1)}% + this</div>
                 <SmallInput value={closeRateLiftPts} onChange={(v) => setCloseRateLiftPts(clamp(v, 0, 100))} suffix="pp" palette={palette} />
               </div>
             </div>
 
-            {/* Comparison table */}
-            <div className="overflow-hidden rounded-[20px]" style={{ border: `1px solid ${palette.border}` }}>
+            <div className="overflow-hidden rounded-[16px]" style={{ border: `1px solid ${palette.border}` }}>
               <table className="w-full">
                 <thead>
                   <tr style={{ background: palette.bgSecondary }}>
-                    <th style={thLabelStyle}>Metric</th>
-                    <th style={thStyle}>Current</th>
-                    <th style={{ ...thStyle, color: accent }}>+ ScaleAuto</th>
+                    <th style={thL}>Metric</th>
+                    <th style={thR}>Current</th>
+                    <th style={{ ...thR, color: accent }}>+ ScaleAuto</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
-                    <td style={tdLabelStyle}>Leads / mo</td>
-                    <td style={tdStyle(false)}>{fmt(leadsPerMonth, 'number', 0)}</td>
-                    <td style={tdStyle(true)}>+{fmt(newLeadsDelta, 'number', 0)} ({fmt(leadsTotal, 'number', 0)})</td>
+                    <td style={tdL}>Leads / mo</td>
+                    <td style={tdR(false)}>{fmt(leadsPerMonth, 'number', 0)}</td>
+                    <td style={tdR(true)}>+{fmt(additionalLeads, 'number', 0)} ({fmt(leadsTotal, 'number', 0)})</td>
                   </tr>
                   <tr>
-                    <td style={tdLabelStyle}>Jobs / mo</td>
-                    <td style={tdStyle(false)}>{fmt(Math.round(jobsPerMonth), 'number', 0)}</td>
-                    <td style={tdStyle(true)}>+{fmt(Math.round(newJobsDelta), 'number', 0)} ({fmt(Math.round(jobsTotal), 'number', 0)})</td>
+                    <td style={tdL}>Jobs / mo</td>
+                    <td style={tdR(false)}>{Math.round(jobsPerMonth)}</td>
+                    <td style={tdR(true)}>+{Math.round(newJobsDelta)} ({Math.round(jobsTotal)})</td>
                   </tr>
                   <tr>
-                    <td style={tdLabelStyle}>Monthly profit</td>
-                    <td style={tdStyle(false)}>{fmt(monthlyProfitCurrent, 'currency')}</td>
-                    <td style={tdStyle(true)}>+{fmt(deltaMonthly, 'currency')} ({fmt(monthlyProfitNew, 'currency')})</td>
+                    <td style={tdL}>Monthly profit</td>
+                    <td style={tdR(false)}>{fmt(monthlyProfitCurrent, 'currency')}</td>
+                    <td style={tdR(true)}>+{fmt(deltaMonthly, 'currency')} ({fmt(monthlyProfitNew, 'currency')})</td>
                   </tr>
                   <tr>
-                    <td style={tdLabelStyle}>Yearly profit</td>
-                    <td style={tdStyle(false)}>{fmt(yearlyProfitCurrent, 'currency')}</td>
-                    <td style={tdStyle(true)}>+{fmt(annualExtra, 'currency')} ({fmt(yearlyProfitNew, 'currency')})</td>
+                    <td style={tdL}>Yearly profit</td>
+                    <td style={tdR(false)}>{fmt(yearlyProfitCurrent, 'currency')}</td>
+                    <td style={tdR(true)}>+{fmt(annualExtra, 'currency')} ({fmt(yearlyProfitNew, 'currency')})</td>
                   </tr>
                 </tbody>
               </table>
@@ -297,53 +282,53 @@ export default function ScaleCalculator() {
 
           {/* Section 4: Verdict */}
           <Section title="The Verdict" accentColor="#6BF6FF" {...p}>
-            <div className="rounded-[26px] px-6 py-8 md:px-10 md:py-10 mb-6" style={{ background: vc.bg, border: `1px solid ${vc.border}` }}>
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="rounded-[22px] px-5 py-6 md:px-8 md:py-8 mb-5" style={{ background: vc.bg, border: `1px solid ${vc.border}` }}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <div className="text-sm font-bold uppercase tracking-[0.2em] mb-2" style={{ color: vc.text, opacity: 0.7 }}>{vc.label}</div>
-                  <div className="text-xl font-medium leading-8 max-w-lg" style={{ color: vc.text }}>{verdictMessage}</div>
+                  <div className="text-xs font-bold uppercase tracking-[0.2em] mb-2" style={{ color: vc.text, opacity: 0.7 }}>{vc.label}</div>
+                  <div className="text-base font-medium leading-7 max-w-sm" style={{ color: vc.text }}>{verdictMessage}</div>
                 </div>
                 {returnMultiple !== null && (
                   <div className="text-center shrink-0">
-                    <div className="text-6xl font-bold tracking-[-0.06em] md:text-7xl" style={{ color: vc.text }}>{returnMultiple.toFixed(1)}x</div>
-                    <div className="text-sm font-semibold uppercase tracking-[0.15em] mt-1" style={{ color: vc.text, opacity: 0.65 }}>return multiple</div>
+                    <div className="text-5xl font-bold tracking-[-0.06em] md:text-6xl" style={{ color: vc.text }}>{returnMultiple.toFixed(1)}x</div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.15em] mt-1" style={{ color: vc.text, opacity: 0.65 }}>return multiple</div>
                   </div>
                 )}
               </div>
-              <div className="mt-8">
-                <div className="h-2.5 rounded-full overflow-hidden" style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(5,5,5,0.08)' }}>
+              <div className="mt-6">
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(5,5,5,0.08)' }}>
                   <div className="h-full rounded-full transition-all duration-500" style={{
                     width: returnMultiple !== null ? `${Math.min((returnMultiple / 7) * 100, 100)}%` : '0%',
                     background: verdictLevel === 'green' ? `linear-gradient(90deg, rgba(111,230,0,0.6), ${accent})` : verdictLevel === 'yellow' ? 'linear-gradient(90deg, rgba(250,204,21,0.6), #FACC15)' : 'linear-gradient(90deg, rgba(251,113,133,0.6), #FB7185)',
                   }} />
                 </div>
-                <div className="mt-2 flex justify-between text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: palette.textSoft }}>
+                <div className="mt-2 flex justify-between text-[9px] font-bold uppercase tracking-[0.10em]" style={{ color: palette.textSoft }}>
                   <span>0x</span><span>1x</span><span>2x</span><span>3x</span><span>4x</span><span>5x</span><span>6x</span><span>7x+</span>
                 </div>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[10px] font-bold uppercase tracking-[0.12em]">
-                  <div className="rounded-full py-1.5" style={{ background: isDark ? 'rgba(136,19,55,0.22)' : 'rgba(251,113,133,0.10)', color: isDark ? '#FDA4AF' : '#BE123C' }}>Under 2x — Don't do it</div>
-                  <div className="rounded-full py-1.5" style={{ background: isDark ? 'rgba(120,92,22,0.18)' : 'rgba(250,204,21,0.12)', color: isDark ? '#FDE68A' : '#A16207' }}>2–3x — Borderline</div>
-                  <div className="rounded-full py-1.5" style={{ background: isDark ? 'rgba(111,230,0,0.10)' : 'rgba(111,230,0,0.10)', color: isDark ? accent : '#4D9B00' }}>Over 3x — No-brainer</div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center text-[9px] font-bold uppercase tracking-[0.10em]">
+                  <div className="rounded-full py-1.5" style={{ background: isDark ? 'rgba(136,19,55,0.22)' : 'rgba(251,113,133,0.10)', color: isDark ? '#FDA4AF' : '#BE123C' }}>Under 2x</div>
+                  <div className="rounded-full py-1.5" style={{ background: isDark ? 'rgba(120,92,22,0.18)' : 'rgba(250,204,21,0.12)', color: isDark ? '#FDE68A' : '#A16207' }}>2–3x</div>
+                  <div className="rounded-full py-1.5" style={{ background: isDark ? 'rgba(111,230,0,0.10)' : 'rgba(111,230,0,0.10)', color: isDark ? accent : '#4D9B00' }}>Over 3x</div>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+            <div className="grid gap-3 grid-cols-2">
               {[
-                { label: 'Extra profit / month',       value: deltaMonthly > 0  ? `+${fmt(deltaMonthly, 'currency')}` : '—', color: accent },
-                { label: 'Annual extra take-home',     value: annualExtra > 0   ? `+${fmt(annualExtra, 'currency')}` : '—',  color: accent },
-                { label: 'Break-even on our fee',      value: paybackWeeks !== null && paybackWeeks > 0 ? `${paybackWeeks.toFixed(1)} wks` : '—', sub: paybackMonths !== null && paybackMonths > 0 ? `${paybackMonths.toFixed(1)} months` : null, color: isDark ? '#6BF6FF' : '#0891B2' },
+                { label: 'Extra profit / month',        value: deltaMonthly > 0 ? `+${fmt(deltaMonthly, 'currency')}` : '—',   color: accent },
+                { label: 'Annual extra take-home',      value: annualExtra > 0  ? `+${fmt(annualExtra, 'currency')}`  : '—',   color: accent },
+                { label: 'Break-even on our fee',       value: paybackWeeks !== null && paybackWeeks > 0 ? `${paybackWeeks.toFixed(1)} wks` : '—', sub: paybackMonths !== null && paybackMonths > 0 ? `${paybackMonths.toFixed(1)} months` : null, color: isDark ? '#6BF6FF' : '#0891B2' },
                 { label: 'For every $1 in ads + system', value: returnMultiple !== null ? `$${returnMultiple.toFixed(2)}` : '—', sub: 'in gross profit', color: isDark ? '#6BF6FF' : '#0891B2' },
               ].map((card) => (
-                <div key={card.label} className="rounded-[20px] p-5 flex flex-col" style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}` }}>
-                  <div className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color: palette.textSoft }}>{card.label}</div>
-                  <div className="mt-3 text-[28px] font-bold tracking-[-0.03em]" style={{ color: card.color }}>{card.value}</div>
-                  {card.sub && <div className="mt-1 text-sm" style={{ color: palette.textMuted }}>{card.sub}</div>}
+                <div key={card.label} className="rounded-[16px] p-4 flex flex-col" style={{ background: palette.bgSecondary, border: `1px solid ${palette.border}` }}>
+                  <div className="text-[10px] font-bold uppercase tracking-[0.10em]" style={{ color: palette.textSoft }}>{card.label}</div>
+                  <div className="mt-2 text-[24px] font-bold tracking-[-0.03em]" style={{ color: card.color }}>{card.value}</div>
+                  {card.sub && <div className="mt-1 text-xs" style={{ color: palette.textMuted }}>{card.sub}</div>}
                 </div>
               ))}
             </div>
 
-            <div className="pt-5 text-center text-sm" style={{ color: palette.textSoft }}>
+            <div className="pt-4 text-center text-xs" style={{ color: palette.textSoft }}>
               Return multiple = Gross Profit per Job / Customer Acquisition Cost (CAC)
             </div>
           </Section>
