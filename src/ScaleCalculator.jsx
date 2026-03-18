@@ -104,7 +104,7 @@ export default function ScaleCalculator() {
   }
 
   const palette = useMemo(() => ({
-    bg:          isDark ? '#050505'                  : '#F4F4F5',
+    bg:          isDark ? '#050505'                  : '#ffffffff',
     bgSecondary: isDark ? 'rgba(255,255,255,0.028)' : 'rgba(10,10,10,0.05)',
     panelStrong: isDark ? 'rgba(255,255,255,0.045)' : 'rgba(255,255,255,0.98)',
     border:      isDark ? 'rgba(255,255,255,0.08)'  : 'rgba(5,5,5,0.10)',
